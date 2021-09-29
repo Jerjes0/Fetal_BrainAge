@@ -5,11 +5,12 @@ warnings.filterwarnings(action='ignore')
 import pandas as pd
 import os, glob, sys, argparse
 import tensorflow as tf
-import keras
-from keras.backend.tensorflow_backend import set_session
-from keras.callbacks import ModelCheckpoint, EarlyStopping, LearningRateScheduler
-from keras import backend as K
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow import keras
+#from tensorflow.keras.backend.tensorflow_backend import set_session
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, LearningRateScheduler
+from tensorflow.keras import backend as K
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser('   ==========   Fetal Brain age prediciton by Jinwoo Hong   ==========   ')
@@ -73,12 +74,12 @@ def make_dic(img_list, num_slice, slice_mode=0, desc=''):
     return dic
 
 def age_predic_network(img_shape):
-    from keras.layers import Dense, Input, concatenate, Dropout, Flatten
-    from keras.models import Model
-    from keras.optimizers import Adam
+    from tensorflow.keras.layers import Dense, Input, concatenate, Dropout, Flatten
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.optimizers import Adam
     from keras_applications.resnet_v2 import ResNet101V2
-    import keras.backend as K
-    import keras
+    import tensorflow.keras.backend as K
+    from tensorflow import keras
     model = ResNet101V2(input_shape=img_shape,include_top=False, weights=None, pooling='avg',backend=keras.backend,layers=keras.layers,models=keras.models, utils=keras.utils)
     o = Dropout(0.3)(model.layers[-1].output)
     o = Dense(1,activation='linear')(o)
