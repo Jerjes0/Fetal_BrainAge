@@ -5,12 +5,12 @@ from tqdm import tqdm
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import tensorflow as tf
-import keras
-from keras.backend.tensorflow_backend import set_session
+from tensorflow import keras
+#from keras.backend.tensorflow_backend import set_session
 import argparse
-from keras.callbacks import ModelCheckpoint, EarlyStopping, LearningRateScheduler
-from keras import backend as K
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, LearningRateScheduler
+from tensorflow.keras import backend as K
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 parser = argparse.ArgumentParser('   ==========   Fetal brain age prediction, made by Jinwoo Hong 2020.09.20 ver.1)   ==========   ')
 parser.add_argument('-input_csv',action='store',dest='input_csv',type=str, required=True, help='input csv table')
@@ -58,10 +58,10 @@ print('\n\n')
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]=args.num_gpu
 
-config = tf.ConfigProto()
+config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 config.allow_soft_placement = True
-set_session(tf.Session(config=config))
+tf.compat.v1.keras.backend.set_session(tf.compat.v1.Session(config=config))
 
 batch_size = args.num_batch
 num_slice=args.num_slice
@@ -107,12 +107,12 @@ def make_dic(img_list, num_slice, slice_mode=0, desc=''):
     return dic
 
 def age_predic_network(img_shape):
-    from keras.layers import Dense, Input, concatenate, Dropout, Flatten
-    from keras.models import Model
-    from keras.optimizers import Adam
+    from tensorflow.keras.layers import Dense, Input, concatenate, Dropout, Flatten
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.optimizers import Adam
     from keras_applications.resnet_v2 import ResNet101V2
-    import keras.backend as K
-    import keras
+    import tensorflow.keras.backend as K
+    from tensorflow import keras
     model = ResNet101V2(input_shape=img_shape,include_top=False, weights=None, pooling='avg',backend=keras.backend,layers=keras.layers,models=keras.models, utils=keras.utils)
     o = Dropout(0.3)(model.layers[-1].output)
     o = Dense(1,activation='linear')(o)
@@ -201,8 +201,8 @@ for ii in range(args.start_fold,args.end_fold):
 
         model = age_predic_network([138,176,1])
 
-    callbacks = [EarlyStopping(monitor='val_mean_absolute_error', patience=150, verbose=1, mode='min'),
-                ModelCheckpoint(filepath=weight_loc+'/best_fold'+str(ii)+'_rsl.h5', monitor='val_mean_absolute_error', save_best_only=True, mode='min', save_weights_only=True, verbose=0)]
+    callbacks = [EarlyStopping(monitor='mae', patience=150, verbose=1, mode='min'),
+                ModelCheckpoint(filepath=weight_loc+'/best_fold'+str(ii)+'_rsl.h5', monitor='mae', save_best_only=True, mode='min', save_weights_only=True, verbose=0)]
     histo = model.fit_generator(datagen.flow(train_dic,b_train_GW,batch_size=batch_size,shuffle=True),steps_per_epoch=len(train_dic)/batch_size,epochs=10000, validation_data=datagen.flow(val_dic, b_val_GW, batch_size=batch_size,shuffle=True),validation_steps=len(val_dic),workers=4,callbacks=callbacks)
     with open(hist_loc+'/history_fold'+str(ii)+'_rsl.pkl', 'wb') as file_pi:
             pickle.dump(histo.history, file_pi)
@@ -211,9 +211,8 @@ for ii in range(args.start_fold,args.end_fold):
     p_age2 = tta_prediction(datagen,model, test_dic,20)
     #np.savetxt(result_loc+'/fold'+str(ii)+'_rsl.txt',np.concatenate((b_test_ID[:,np.newaxis],b_test_GW[:,np.newaxis],p_age),axis=1),fmt="%s")
     np.savetxt(result_loc+'/fold'+str(ii)+'_aug_rsl.txt',np.concatenate((b_test_ID[:,np.newaxis],b_test_GW[:,np.newaxis],p_age2[:,np.newaxis]),axis=1),fmt="%s")
-
-    del model, histo, p_age, p_age2
+    del model, histo, p_age2
+    #del model, histo, p_age, p_age2
 
     K.clear_session()
     tf.reset_default_graph()
-
