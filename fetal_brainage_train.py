@@ -11,7 +11,7 @@ import argparse
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, LearningRateScheduler
 from tensorflow.keras import backend as K
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
+#comment
 parser = argparse.ArgumentParser('   ==========   Fetal brain age prediction, made by Jinwoo Hong 2020.09.20 ver.1)   ==========   ')
 parser.add_argument('-input_csv',action='store',dest='input_csv',type=str, required=True, help='input csv table')
 parser.add_argument('-batch_size',action='store',default=80,dest='num_batch',type=int, help='Number of batch')
